@@ -18,10 +18,20 @@
  */
 class Smile_ElasticSearch_Model_Resource_CatalogSearch_Synonym_Collection extends Mage_CatalogSearch_Model_Resource_Query_Collection
 {
+
+    /**
+     * @var string[]
+     */
+    protected $escapeMap = array(
+        ','  => '\\,',
+        '\\' => '\\\\',
+        '=>' => '\\=>',
+    );
+
     /**
      * Generates the synonym list for the search engine.
      *
-     * @return return array
+     * @return string[]
      */
     public function exportSynonymList()
     {
@@ -31,10 +41,21 @@ class Smile_ElasticSearch_Model_Resource_CatalogSearch_Synonym_Collection extend
         $adapter = $this->getConnection();
         $data = $adapter->fetchAll($this->getSelect());
         foreach ($data as $currentTerm) {
-            $currentTerm['synonym_for'] = sprintf('%s, %s', $currentTerm['query_text'], $currentTerm['synonym_for']);
-            $result[] = sprintf("%s => %s", $currentTerm['query_text'], $currentTerm['synonym_for']);
+            $synonymFor = $this->escapeSynonym($currentTerm['synonym_for']);
+            $queryText = $this->escapeSynonym($currentTerm['query_text']);
+            $result[] = "{$queryText} => {$queryText}, {$synonymFor}";
         }
 
         return $result;
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function escapeSynonym($str)
+    {
+        return strtr($str, $this->escapeMap);
     }
 }
