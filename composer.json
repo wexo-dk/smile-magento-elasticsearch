@@ -1,16 +1,24 @@
 {
-    "name": "smile/magento-es",
-    "description": "Magento ElasticSearch Implementation",
-    "homepage": "https://github.com/Smile-SA/smile-magento-elasticsearch",
+    "name": "wexo/smile-magento-elasticsearch",
+    "description": "Fork of Smile's Magento ElasticSearch Implementation",
+    "homepage": "https://github.com/wexo/smile-magento-elasticsearch-fork",
     "type": "magento-module",
     "require": {
         "elasticsearch/elasticsearch": "~1.2.2"
+    },
+    "replace": {
+        "smile/magento-es": "~1.4.0",
+        "smile/elasticsearch": "~1.4.0"
     },
     "license": "OSL-3.0",
     "authors": [
         {
             "name": "Aurélien FOUCRET",
             "email": "aurelien.foucret@smile.fr"
+        },
+        {
+            "name": "Kim Sondrup (WEXO A/S)",
+            "email": "kim@wexo.dk"
         }
     ],
     "minimum-stability": "stable"
