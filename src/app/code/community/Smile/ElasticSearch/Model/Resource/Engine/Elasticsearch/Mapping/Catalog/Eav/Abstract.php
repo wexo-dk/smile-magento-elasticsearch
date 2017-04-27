@@ -454,20 +454,36 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         foreach ($attributeTypes as $tableName => $attributeIds) {
             if ($attributeIds) {
                 $select = $adapter->select()
-                    ->from(array('t_default' => $tableName), array('entity_id', 'attribute_id'))
+                    ->from(array('t_main' => $tableName), array(
+                        'entity_id',
+                        'attribute_id',
+                        'value' => new Zend_Db_Expr('COALESCE(t_store.value, t_default.value)')
+                    ))
+                    ->joinLeft(
+                        array('t_default' => $tableName),
+                        $adapter->quoteInto(
+                            't_main.entity_id=t_default.entity_id' .
+                            ' AND t_main.attribute_id=t_default.attribute_id' .
+                            ' AND t_default.store_id=?',
+                            0
+                        ),
+                        array()
+                    )
                     ->joinLeft(
                         array('t_store' => $tableName),
                         $adapter->quoteInto(
-                            't_default.entity_id=t_store.entity_id' .
-                            ' AND t_default.attribute_id=t_store.attribute_id' .
+                            't_main.entity_id=t_store.entity_id' .
+                            ' AND t_main.attribute_id=t_store.attribute_id' .
                             ' AND t_store.store_id=?',
                             $storeId
                         ),
-                        array('value' => new Zend_Db_Expr('COALESCE(t_store.value, t_default.value)'))
+                        array()
                     )
-                    ->where('t_default.store_id=?', 0)
-                    ->where('t_default.attribute_id IN (?)', $attributeIds)
-                    ->where('t_default.entity_id IN (?)', $entityIds);
+                    ->where('t_main.store_id IN (?)', array(0, $storeId))
+                    ->where('t_main.attribute_id IN (?)', $attributeIds)
+                    ->where('t_main.entity_id IN (?)', $entityIds)
+                    ->group(array('t_main.attribute_id', 't_main.entity_id'));
+
 
                 /**
                  * Add additional external limitation
@@ -477,7 +493,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $eventName,
                     array(
                         'select'        => $select,
-                        'entity_field'  => new Zend_Db_Expr('t_default.entity_id'),
+                        'entity_field'  => new Zend_Db_Expr('t_main.entity_id'),
                         'website_field' => $websiteId,
                         'store_field'   => new Zend_Db_Expr('t_store.store_id')
                     )
