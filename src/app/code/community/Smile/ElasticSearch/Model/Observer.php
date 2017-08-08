@@ -112,10 +112,12 @@ class Smile_ElasticSearch_Model_Observer
         $helper = Mage::helper('smile_elasticsearch');
         $category = $observer->getEvent()->getCategory();
         if ($helper->isEnterpriseSupportEnabled() == false) {
-            $productIds = $category->getProductCollection()->getAllIds();
-            $this->_getIndexer()->resetSearchResults();
-            $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
-            $currentIndex->getMapping('product')->rebuildIndex(null, $productIds);
+            if ($helper->isActiveEngine()) {
+                $productIds = $category->getProductCollection()->getAllIds();
+                $this->_getIndexer()->resetSearchResults();
+                $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
+                $currentIndex->getMapping('product')->rebuildIndex(null, $productIds);
+            }
         } else {
             $category = $observer->getEvent()->getCategory();
             $productIds = $category->getAffectedProductIds();
